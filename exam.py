@@ -83,3 +83,12 @@ while choice2 == "N":
 	spe_N = findSpec()
 	print("There are " + str(spe_N) + " species in this dataset")
 	choice2 = input("Do you want to continue?,Y/N\n")
+
+
+print("OK, Let's make BLAST database first")
+if choice1 == "nucleotide":
+	mdb = "makeblastdb -in nucleotide_seq.fa -dbtype prot -out " + taxon_gp              #make BLAST database
+if choice1 == "protein":
+	mdb = "makeblastdb -in protein_seq.fa -dbtype prot -out " + taxon_gp
+#print(mdb)
+subprocess.call(mdb,shell=True)
