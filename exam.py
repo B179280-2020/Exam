@@ -14,12 +14,12 @@ def getInput():
 	if choice1 == "nucleotide":
 		nucle = input("Please enter the gene name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
-		es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name]\" | efetch -db protein -format fasta > nucleotide_seq.fa '
+		es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name]\" | efetch -db protein -format fasta > seq.fa '
 	if choice1 == "protein":
 		protein = input("Please enter the protein name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
 		print("Thanks, you have chosen " + protein)
-		es1 = 'esearch -db protein -query \" '+ taxon_gp +'[orgn] AND '+ protein + '[Protein Name]\" | efetch -db protein -format fasta > protein_seq.fa '
+		es1 = 'esearch -db protein -query \" '+ taxon_gp +'[orgn] AND '+ protein + '[Protein Name]\" | efetch -db protein -format fasta > seq.fa '
 	print("This is what will be run: " + es1)
 #Run the esearch and efetch command to get the dataset from NCBI
 	return subprocess.call(es1,shell=True)
@@ -37,10 +37,10 @@ seq_Num = findSeq()
 
 #Test if the the number of the sequences are appropriate and give the user options to decide if they want to continue
 def sequence_check(seq_Num):
-	while seq_Num <= 1 or seq_Num >= 1000:
-		print("Sorry,there is something wrong with your input - no result or over 1000 sequence. Please input again!")
-		if seq_Num >= 1 and seq_Num <= 1000:
-                        break
+	while seq_Num <= 1:
+		print("Sorry,there is something wrong with your input - no result. Please input again!")
+		if seq_Num >= 1:
+			break
 		getInput()
 		seq_Num = findSeq()
 		return seq_Num
@@ -84,7 +84,7 @@ while choice2 == "N":
 	print("There are " + str(spe_N) + " species in this dataset")
 	choice2 = input("Do you want to continue?,Y/N\n")
 
-
+#move on to the BLAST analysis
 print("OK, Let's make BLAST database first")
 if choice1 == "nucleotide":
 	mdb = "makeblastdb -in nucleotide_seq.fa -dbtype prot -out " + taxon_gp              #make BLAST database
@@ -102,8 +102,8 @@ def check_ID(ID):
 	if choice1 == "protein":
 		count = subprocess.check_output('esearch -db protein -query "{0}" | xtract -pattern ENTREZ_DIRECT -element Count'.format(ID),shell=True)
 	if int(count) == 0:      #if there is no data found thenfunctionss return 0 further it gaves error message to the user
-			return 0
-	return 1         #if there is at least one data found regarding to the user input we continue p
+		return 0
+	return 1         #the ID is correct, we can continue
 
 choice4 = input("Please enter your choice. 1/2\n")
 if choice4 == "1":
