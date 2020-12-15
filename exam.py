@@ -13,8 +13,8 @@ choice1 = ""
 def getInput():
 	global taxon_gp           #set it as a global varibale
 	global choice1            #set it as global variable
-	choice1 = input("Please indicate nucleotide or protein to be searched?, nucleotide/protein\n")
-	if choice1 == "nucleotide":
+	choice1 = input("Please indicate nucleotide or protein to be searched?, n/p\n")
+	if choice1 == "n":
 		nucle = input("Please enter the gene name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
 		print("Just a reminder, there may have some partial sequences in this dataset.")
@@ -24,7 +24,7 @@ def getInput():
 		if pseq == "N":
 			es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name] Not partial\" | efetch -db nucleotide -format fasta > seq.fa '
 		print("Thanks, you have chosen " + nucle + " in " + taxon_gp + "\n")
-	if choice1 == "protein":
+	if choice1 == "p":
 		protein = input("Please enter the protein name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
 		print("Just a reminder, there may have some partial sequences in this dataset.")
@@ -69,6 +69,7 @@ while choice2 == "N":
 	print("Thanks, please then input what you want again")
 	getInput()
 	seq_Num = findSeq()
+	sequence_check(seq_Num)
 	print("There are " + str(seq_Num) + " sequences in the dataset you have chosen")
 	choice2 = input("Do you want to continue?,Y/N\n")
 	
@@ -95,43 +96,48 @@ while choice3 == "N":
 	getInput()
 	seq_Num = findSeq()
 	spe_N = findSpec()
+	sequence_check(seq_Num)
+	print("There are " + str(seq_Num) + " sequences in the dataset you have chosen")
 	print("There are " + str(spe_N) + " species in this dataset")
 	choice3 = input("Do you want to continue?,Y/N\n")
 
 #move on to the BLAST analysis
 print("OK, Let's make BLAST database first")
-if choice1 == "nucleotide":
+if choice1 == "n":
 	mdb = "makeblastdb -in seq.fa -dbtype nucl -out " + taxon_gp              #make BLAST database
-if choice1 == "protein":
+if choice1 == "p":
 	mdb = "makeblastdb -in seq.fa -dbtype prot -out " + taxon_gp
 #print(mdb)
 subprocess.call(mdb,shell=True)
 #asking the user to determine the query sequence for BLAST analysis
 print("You may have 2 options to determine the query sequence. 1: enter a Seq ID; 2: enter the whole sequence")
 
+
+
+##define a function to check the Seq ID that the user has inputted. This is for the next step
 def check_ID(ID):     
-	#when you do esearch it print out ENTREZ_DIRECT, where you can find found data count, I try to save that value and check
-	if choice1 == "nucleotide":
-		count = subprocess.check_output('esearch -db nucleotide -query "+ ID + " | xtract -pattern ENTREZ_DIRECT -element Count',shell=True) 
-	if choice1 == "protein":
-		count = subprocess.check_output('esearch -db protein -query " + ID+ " | xtract -pattern ENTREZ_DIRECT -element Count',shell=True)
-	if int(count) == 0:      #if there is no data found thenfunctionss return 0 further it gaves error message to the user
+	#when you do esearch it print out ENTREZ_DIRECT, where data count can be found, check the value
+	if choice1 == "n":
+		value = subprocess.check_output('esearch -db nucleotide -query "+ ID + " | xtract -pattern ENTREZ_DIRECT -element Count',shell=True) 
+	if choice1 == "p":
+		value = subprocess.check_output('esearch -db protein -query " + ID+ " | xtract -pattern ENTREZ_DIRECT -element Count',shell=True)
+	if int(value) == 0:      #if there is no data found thenfunctionss return 0
 		return 0
 	return 1         #the ID is correct, we can continue
-
+##let the user to make the decision
 choice4 = input("Please enter your choice. 1/2\n")
 if choice4 == "1":
 	ID = input("Please enter a Seq ID that you would like to do BLAST\n")
 	while check_ID(ID) != 1:
 		ID = input("Sorry, your Seq ID may not be correct. Please enter the correct one!\n")
 	print("Thanks, the sequence you have chosen will be downloaded and served as the test sequence for BLAST.")
-	if choice1 == "nucleotide":
+	if choice1 == "n":
 		os.system("esearch -db nucleotide -query " + ID + " | efetch -db nucleotide -format fasta > test_seq.fa")
 		blt = "blastn -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
 		#print(blt)
 		subprocess.call(blt,shell=True)
 		print("BLAST analysis has been successfully done!")
-	if choice1 == "protein":
+	if choice1 == "p":
 		os.system("esearch -db protein -query " + ID + " | efetch -db protein -format fasta > test_seq.fa")
 		blt = "blastp -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
 		#print(blt)
@@ -144,22 +150,26 @@ if choice4 == "2":
 	seq_of_interest.write(">Sequence_of_Interest\n")
 	seq_of_interest.write('{0}'.format(iseq))  
 	seq_of_interest.close()
-	if choice1 == "nucleotide":
+	if choice1 == "n":
 		os.system("esearch -db nucleotide -query " + ID + " | efetch -db nucleotide -format fasta > test_seq.fa")
 		blt = "blastn -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
 		#print(blt)
 		subprocess.call(blt,shell=True)
 		print("BLAST analysis has been successfully done!")
-	if choice1 == "protein":
+	if choice1 == "p":
 		os.system("esearch -db protein -query " + ID + " | efetch -db protein -format fasta > test_seq.fa")
 		blt = "blastp -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
 		#print(blt)
 		subprocess.call(blt,shell=True)
 		print("BLAST analysis has been successfully done!")
 
+#ask the user if they want to see the results
 choice5 = input("Now BLAST results are ready. Do you want to display it?, Y/N\n")
 if choice5 == "Y":
 	dis = "cat blastoutput.out"
 	subprocess.call(dis,shell = True)
 if choice5 == "N":
 	print("OK, you can check the results later.")	
+
+
+print("Thanks for using this programme!")
