@@ -87,7 +87,7 @@ while choice2 == "N":
 #move on to the BLAST analysis
 print("OK, Let's make BLAST database first")
 if choice1 == "nucleotide":
-	mdb = "makeblastdb -in nucleotide_seq.fa -dbtype prot -out " + taxon_gp              #make BLAST database
+	mdb = "makeblastdb -in nucleotide_seq.fa -dbtype nucl -out " + taxon_gp              #make BLAST database
 if choice1 == "protein":
 	mdb = "makeblastdb -in protein_seq.fa -dbtype prot -out " + taxon_gp
 #print(mdb)
@@ -113,7 +113,7 @@ if choice4 == "1":
 	print("Thanks, the sequence you have chosen will be downloaded and served as the test sequence for BLAST.")
 	if choice1 == "nucleotide":
 		os.system("esearch -db nucleotide -query " + ID + " | efetch -db nucleotide -format fasta > test_seq.fa")
-		blt = "blastp -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
+		blt = "blastn -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
 		#print(blt)
 		subprocess.call(blt,shell=True)
 		print("BLAST analysis has been successfully done!")
@@ -130,7 +130,22 @@ if choice4 == "2":
 	seq_of_interest.write(">Sequence_of_Interest\n")
 	seq_of_interest.write('{0}'.format(iseq))  
 	seq_of_interest.close()
-	blt = "blastp -db " + taxon_gp + " -query seq_of_interest.fa -outfmt 6 > blastoutput.out"
-	#print(blt)
-	subprocess.call(blt,shell=True)
-	print("BLAST analysis has been successfully done!")
+	if choice1 == "nucleotide":
+		os.system("esearch -db nucleotide -query " + ID + " | efetch -db nucleotide -format fasta > test_seq.fa")
+		blt = "blastn -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
+		#print(blt)
+		subprocess.call(blt,shell=True)
+		print("BLAST analysis has been successfully done!")
+	if choice1 == "protein":
+		os.system("esearch -db protein -query " + ID + " | efetch -db protein -format fasta > test_seq.fa")
+		blt = "blastp -db " + taxon_gp + " -query test_seq.fa -outfmt 6 > blastoutput.out"
+		#print(blt)
+		subprocess.call(blt,shell=True)
+		print("BLAST analysis has been successfully done!")
+
+choice5 = input("Now BLAST results are ready. Do you want to display it?, Y/N\n")
+if choice5 == "Y":
+	dis = "cat blastoutput.out"
+	subprocess.call(dis,shell = True)
+if choice5 == "N":
+	print("OK, you can check the results later.")	
