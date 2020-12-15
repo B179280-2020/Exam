@@ -2,24 +2,28 @@
 
 import sys, subprocess, shutil, os
 import string, re
-import collections
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from Bio import Entrez
 
+taxon_gp = ""
+choice1 = ""
 
 def getInput():
+	global taxon_gp           #set it as a global varibale
+	global choice1            #set it as global variable
 	choice1 = input("Please indicate nucleotide or protein to be searched?, nucleotide/protein\n")
 	if choice1 == "nucleotide":
 		nucle = input("Please enter the gene name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
-		es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name]\" | efetch -db protein -format fasta > seq.fa '
+		es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name]\" | efetch -db nucleotide -format fasta > seq.fa '
+		print("Thanks, you have chosen " + nucle + " in " + taxon_gp + "\n")
 	if choice1 == "protein":
 		protein = input("Please enter the protein name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
-		print("Thanks, you have chosen " + protein)
 		es1 = 'esearch -db protein -query \" '+ taxon_gp +'[orgn] AND '+ protein + '[Protein Name]\" | efetch -db protein -format fasta > seq.fa '
+		print("Thanks, you have chosen " + protein + " in " + taxon_gp + "\n")
 	print("This is what will be run: " + es1)
 #Run the esearch and efetch command to get the dataset from NCBI
 	return subprocess.call(es1,shell=True)
@@ -48,15 +52,15 @@ sequence_check(seq_Num)
 
 #Tell the user the sequence number and ask them if they are willing to continue
 print("There are " + str(seq_Num) + " sequences in the dataset you have chosen")
-choice1 = input("Do you want to continue?,Y/N\n")
-while choice1 == "N":
-	if choice1 == "Y":
+choice2 = input("Do you want to continue?,Y/N\n")
+while choice2 == "N":
+	if choice2 == "Y":
 		break
 	print("Thanks, please then input what you want again")
 	getInput()
 	seq_Num = findSeq()
 	print("There are " + str(seq_Num) + " sequences in the dataset you have chosen")
-	choice1 = input("Do you want to continue?,Y/N\n")
+	choice2 = input("Do you want to continue?,Y/N\n")
 	
 #find the number of species in this dataset
 def findSpec():
@@ -73,23 +77,23 @@ def findSpec():
 spe_N = findSpec()
 #Tell the user the number of species in this dataset and ask them if you want to continue
 print("There are " + str(spe_N) + " species in this dataset")
-choice2 = input("Do you want to continue with the current dataset? Y/N\n")
-while choice2 == "N":
-	if choice2 == "Y":
+choice3 = input("Do you want to continue with the current dataset? Y/N\n")
+while choice3 == "N":
+	if choice3 == "Y":
 		break
 	print("Thanks, please then input what you want again")
 	getInput()
 	seq_Num = findSeq()
 	spe_N = findSpec()
 	print("There are " + str(spe_N) + " species in this dataset")
-	choice2 = input("Do you want to continue?,Y/N\n")
+	choice3 = input("Do you want to continue?,Y/N\n")
 
 #move on to the BLAST analysis
 print("OK, Let's make BLAST database first")
 if choice1 == "nucleotide":
-	mdb = "makeblastdb -in nucleotide_seq.fa -dbtype nucl -out " + taxon_gp              #make BLAST database
+	mdb = "makeblastdb -in seq.fa -dbtype nucl -out " + taxon_gp              #make BLAST database
 if choice1 == "protein":
-	mdb = "makeblastdb -in protein_seq.fa -dbtype prot -out " + taxon_gp
+	mdb = "makeblastdb -in seq.fa -dbtype prot -out " + taxon_gp
 #print(mdb)
 subprocess.call(mdb,shell=True)
 #asking the user to determine the query sequence for BLAST analysis
@@ -98,9 +102,9 @@ print("You may have 2 options to determine the query sequence. 1: enter a Seq ID
 def check_ID(ID):     
 	#when you do esearch it print out ENTREZ_DIRECT, where you can find found data count, I try to save that value and check
 	if choice1 == "nucleotide":
-		count = subprocess.check_output('esearch -db nucleotide -query "{0}" | xtract -pattern ENTREZ_DIRECT -element Count'.format(ID),shell=True) 
+		count = subprocess.check_output('esearch -db nucleotide -query "+ ID + " | xtract -pattern ENTREZ_DIRECT -element Count',shell=True) 
 	if choice1 == "protein":
-		count = subprocess.check_output('esearch -db protein -query "{0}" | xtract -pattern ENTREZ_DIRECT -element Count'.format(ID),shell=True)
+		count = subprocess.check_output('esearch -db protein -query " + ID+ " | xtract -pattern ENTREZ_DIRECT -element Count',shell=True)
 	if int(count) == 0:      #if there is no data found thenfunctionss return 0 further it gaves error message to the user
 		return 0
 	return 1         #the ID is correct, we can continue
@@ -109,7 +113,7 @@ choice4 = input("Please enter your choice. 1/2\n")
 if choice4 == "1":
 	ID = input("Please enter a Seq ID that you would like to do BLAST\n")
 	while check_ID(ID) != 1:
-		ID = input("Sorry, your Seq ID may not be correct. Please enter the correct one!")
+		ID = input("Sorry, your Seq ID may not be correct. Please enter the correct one!\n")
 	print("Thanks, the sequence you have chosen will be downloaded and served as the test sequence for BLAST.")
 	if choice1 == "nucleotide":
 		os.system("esearch -db nucleotide -query " + ID + " | efetch -db nucleotide -format fasta > test_seq.fa")
