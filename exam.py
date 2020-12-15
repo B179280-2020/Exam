@@ -127,7 +127,7 @@ def check_ID(ID):
 ##let the user to make the decision
 choice4 = input("Please enter your choice. 1/2\n")
 if choice4 == "1":
-	ID = input("Please enter a Seq ID that you would like to do BLAST\n")
+	ID = input("Please enter a Seq ID that you would like to do BLAST! Please remember to include quotation marks when entering!\n")
 	while check_ID(ID) != 1:
 		ID = input("Sorry, your Seq ID may not be correct. Please enter the correct one!\n")
 	print("Thanks, the sequence you have chosen will be downloaded and served as the test sequence for BLAST.")
