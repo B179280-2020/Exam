@@ -17,12 +17,22 @@ def getInput():
 	if choice1 == "nucleotide":
 		nucle = input("Please enter the gene name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
-		es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name]\" | efetch -db nucleotide -format fasta > seq.fa '
+		print("Just a reminder, there may have some partial sequences in this dataset.")
+		pseq = input("Do you want to include those partial sequences when searching?, Y/N\n")
+		if pseq == "Y":
+			es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name]\" | efetch -db nucleotide -format fasta > seq.fa '
+		if pseq == "N":
+			es1 = 'esearch -db nucleotide -query \" '+ taxon_gp +'[orgn] AND '+ nucle + '[Gene Name] Not partial\" | efetch -db nucleotide -format fasta > seq.fa '
 		print("Thanks, you have chosen " + nucle + " in " + taxon_gp + "\n")
 	if choice1 == "protein":
 		protein = input("Please enter the protein name\n")
 		taxon_gp = input("Please enter the taxonomic group name\n")
-		es1 = 'esearch -db protein -query \" '+ taxon_gp +'[orgn] AND '+ protein + '[Protein Name]\" | efetch -db protein -format fasta > seq.fa '
+		print("Just a reminder, there may have some partial sequences in this dataset.")
+		pseq = input("Do you want to include those partial sequences when searching?, Y/N\n")
+		if pseq == "Y":
+			es1 = 'esearch -db protein -query \" '+ taxon_gp +'[orgn] AND '+ protein + '[Protein Name]\" | efetch -db protein -format fasta > seq.fa '
+		if pseq == "N":
+			es1 = 'esearch -db protein -query \" '+ taxon_gp +'[orgn] AND '+ protein + '[Protein Name] Not partial\" | efetch -db protein -format fasta > seq.fa '
 		print("Thanks, you have chosen " + protein + " in " + taxon_gp + "\n")
 	print("This is what will be run: " + es1)
 #Run the esearch and efetch command to get the dataset from NCBI
